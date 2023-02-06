@@ -14,11 +14,15 @@ from textwrap import wrap
 
 
 
-production_no_tax = pd.read_csv('Results/production_df_no_tax.csv')
-production_SNP = pd.read_csv('Results/production_df_SNP.csv')
+production_no_tax = pd.read_parquet('Results/production_df_no_tax.parquet')
+production_SNP = pd.read_parquet('Results/production_df_SNP.parquet')
+
+# production_no_tax = pd.read_csv('Results/generation_df_no_tax.csv')
+# production_SNP = pd.read_csv('Results/generation_df_SNP.csv')
+
 stochastic_df = pd.read_csv('Results/Stochastic_df.csv')
 generators = pd.read_csv('Results/generators.csv',index_col=0 )
-county_damage_per_generator = pd.read_csv('Crosswalk/county_damage_per_generator.csv', index_col=0).T
+county_damage_per_generator = pd.read_csv('Results/county_damage_per_generator.csv', index_col=0).T
 
 
 stochastic_df['Day'] = pd.RangeIndex(182500)
@@ -27,7 +31,7 @@ stochastic_df['DOY'] = stochastic_df['Day']-stochastic_df['Year']*365
 
 stochastic_df = stochastic_df[stochastic_df['DOY'] != 364 ]
 
-population = pd.read_csv('Demographics/white_population.csv')
+population = pd.read_csv('Results/USA_Counties/white_population.csv')
 population["non_white"] = (population['P1_001N']-population['P1_003N'])/population['P1_001N']
 
 for i in range(len(population)):
@@ -52,11 +56,11 @@ corr_diff.columns = ['CA_load_diff', 'CA_Hydropower_diff', 'PNW_Hydropower_diff'
 #%%
 csfont = {'fontname':'arial'}
 
-generators2 = pd.read_csv('Results/generators_no_tax.csv',index_col=0 )
+# generators2 = pd.read_csv('Results/generators.csv',index_col=0 )
 
     
-df = pd.concat([generators[['netcap','var_om','NOXrate(lbs/MWh)']],generators2[['seg1','seg2','seg3','zone']]],axis = 1)
-df['tax'] = generators['NOXTax($/MWh)'] + generators['SO2Tax($/MWh)'] + generators['PMTax($/MWh)']
+df = pd.concat([generators[['netcap','var_om','seg1','seg2','seg3','zone']]],axis = 1)
+df['tax'] = generators['NOXTax'] + generators['SO2Tax'] + generators['PMTax']
 
 for i in generators.index:
     df.loc[i,'CF_no_tax'] = (production_no_tax.sum()[i]/500)/(generators.loc[i,'netcap']*24*364)
@@ -71,11 +75,11 @@ for i in generators.index:
         df.loc[i,'gas'] = 4.47
         
 df['CF_diff'] = df['CF_SNP'] - df['CF_no_tax']
-
+#%%
 df['no_tax_cost'] =df['gas']*df['seg2']+df['var_om']
 df['SNP_cost'] = df['no_tax_cost'] + df['tax']
 
-
+county_damage_per_generator = county_damage_per_generator[15:73]
 
 no_tax_damage = county_damage_per_generator*production_no_tax[generators.index].sum()/500
 SNP_damage = county_damage_per_generator*production_SNP[generators.index].sum()/500
@@ -91,28 +95,26 @@ df['non_white_no_tax'] = no_tax_damage[no_tax_damage["non_white"] > 0.5 ].drop(c
 
 
 #%%
-black_no_tax_2 = pd.DataFrame()
-black_SNP_2 = pd.DataFrame()
-for i in no_tax_damage.index:
-    for j in generators.index:
+# black_no_tax_2 = pd.DataFrame()
+# black_SNP_2 = pd.DataFrame()
+# for i in no_tax_damage.index:
+#     for j in generators.index:
         
-        black_no_tax_2.loc[i,j] = (no_tax_damage.loc[i,j]*no_tax_damage.loc[i,'non_white'])/(population['P1_001N'].sum()-population['P1_003N'].sum())
-        # white_no_tax_2.loc[i,j] = (no_tax_damage.loc[i,j]*(1-no_tax_damage.loc[i,'non_white']))/(population['P1_003N'].sum())
+#         black_no_tax_2.loc[i,j] = (no_tax_damage.loc[i,j]*no_tax_damage.loc[i,'non_white'])/(population['P1_001N'].sum()-population['P1_003N'].sum())
+#         # white_no_tax_2.loc[i,j] = (no_tax_damage.loc[i,j]*(1-no_tax_damage.loc[i,'non_white']))/(population['P1_003N'].sum())
 
-        black_SNP_2.loc[i,j] = (SNP_damage.loc[i,j]*SNP_damage.loc[i,'non_white'])/(population['P1_001N'].sum()-population['P1_003N'].sum())
-        # white_SNP_2.loc[i,j] = (SNP_damage.loc[i,j]*(1-SNP_damage.loc[i,'non_white']))/(population['P1_003N'].sum())
+#         black_SNP_2.loc[i,j] = (SNP_damage.loc[i,j]*SNP_damage.loc[i,'non_white'])/(population['P1_001N'].sum()-population['P1_003N'].sum())
+#         # white_SNP_2.loc[i,j] = (SNP_damage.loc[i,j]*(1-SNP_damage.loc[i,'non_white']))/(population['P1_003N'].sum())
 
 
 
-df['non_white_SNP2'] = black_SNP_2.sum()
-df['non_white_no_tax2'] = black_no_tax_2.sum()
+# df['non_white_SNP2'] = black_SNP_2.sum()
+# df['non_white_no_tax2'] = black_no_tax_2.sum()
 
-df = df.drop(columns = ['var_om','NOXrate(lbs/MWh)','seg1','seg2','seg3','zone','gas'])
+df = df.drop(columns = ['var_om','seg1','seg2','seg3','zone','gas'])
 df = pd.concat([df,corr_no_tax,corr_SNP ,corr_diff], axis = 1)
 
 #%%
-from textwrap import wrap
-
 
 fig = plt.figure( figsize = (20,10),constrained_layout=True)
 
@@ -156,7 +158,7 @@ csfont_tick = {'labelsize':22}
 csfont_title = {'fontname':'Arial','size':'26'}
 
 
-df =df.loc[generators.index]
+df = df.loc[generators.index]
 df2 = df#[abs(df['CF_diff'])>=0.01]
 df2 = df2.sort_values('no_tax_cost', ascending = True )
 
@@ -234,5 +236,5 @@ cbar.set_label('Local Emissions Tax ($/MWh)',labelpad = 10, **csfont_title)
 plt.figtext(0.26,-0.04,'Lower Marginal cost ----------------------> Higher Marginal cost', fontdict = {"fontname":"Arial",'size':28})
 
 
-plt.savefig('Plots/Fig_S11.png' , bbox_inches='tight',dpi=250)
+# plt.savefig('Plots/Fig_S11.png' , bbox_inches='tight',dpi=250)
 

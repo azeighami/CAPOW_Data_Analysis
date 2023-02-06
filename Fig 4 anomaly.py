@@ -16,6 +16,8 @@ wind = pd.read_csv('Results/Average values/wind_annual.csv')
 temp = pd.read_csv('Results/Average values/temp_annual.csv')
 irradiance = pd.read_csv('Results/Average values/irradiance_annual.csv')
 
+
+
 best = 495
 worst = 151
 ywwd = 100

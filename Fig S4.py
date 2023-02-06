@@ -14,14 +14,14 @@ from textwrap import wrap
 import matplotlib.colors as colors
 
 
-production_no_tax = pd.read_csv('Results/production_df_no_tax.csv')
-# production_SNP = pd.read_csv('Results/production_df_SNP.csv')
+production_no_tax = pd.read_parquet('Results/production_df_no_tax.parquet')
+# production_SNP = pd.read_parquet('Results/production_df_SNP.parquet')
 
 generators = pd.read_csv('Results/generators.csv',index_col=0 )
-county_damage_per_generator = pd.read_csv('Crosswalk/county_damage_per_generator.csv', index_col=0).T
+county_damage_per_generator = pd.read_csv('Results/county_damage_per_generator.csv', index_col=0).T
+county_damage_per_generator = county_damage_per_generator[15:73]
 
-
-population = pd.read_csv('Demographics/white_population.csv')
+population = pd.read_csv('Results/USA_Counties/white_population.csv')
 population["non_white"] = (population['P1_001N']-population['P1_003N'])/population['P1_001N']
 
 for i in range(len(population)):
@@ -66,7 +66,7 @@ M = pd.DataFrame([])
 for i in generators.index:
     for j in population.index:
         if generators.loc[i, 'county2'] == str(j):
-            M.loc[i,j] = generators.loc[i,'NOXTax($/MWh)'] + generators.loc[i,'SO2Tax($/MWh)'] + generators.loc[i,'PMTax($/MWh)']
+            M.loc[i,j] = generators.loc[i,'NOXTax'] + generators.loc[i,'SO2Tax'] + generators.loc[i,'PMTax']
         else:
             M.loc[i,j] = 0
 
@@ -242,7 +242,7 @@ cbar = plt.colorbar(a, cax= cax3 , orientation="vertical")#, ticks = [ 0, 100] )
 cbar.ax.tick_params(labelsize=13)
 cbar.set_label("Damage ($)",labelpad=13,fontsize=14,**csfont)
 
-plt.savefig('Plots/REVIEW_MP2_1.png' , bbox_inches='tight',dpi=250)
+# plt.savefig('Plots/REVIEW_MP2_1.png' , bbox_inches='tight',dpi=250)
 
 
 # #%%

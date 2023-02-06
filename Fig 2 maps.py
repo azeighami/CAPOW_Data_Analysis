@@ -85,7 +85,7 @@ stream_coordinates = pd.read_csv('Results/streamflow_sites.csv',header=0, index_
 stream_coordinates = stream_coordinates[stream_coordinates.index.isin(stream_annual.index)]
 
 weather_coordinates = pd.read_csv('Results/weather_stations.csv',header=0)
-shape = gpd.read_file('Results/USA_Counties/shape.shp').to_crs('EPSG:4326')
+shape = gpd.read_file('Results/USA_Counties/USA_Counties.shp').to_crs('EPSG:4326')
 state_map = gpd.read_file('Results/USA_Counties/USA_States_Generalized.shp').to_crs('EPSG:4326')
 
 crs = {'init':'epsg:4326'}
@@ -451,5 +451,5 @@ cbar3.ax.tick_params(labelsize=15)
 
 
 
-plt.savefig('Plots/Fig_2_maps.pdf',dpi=250)
+# plt.savefig('Plots/Fig_2_maps.pdf',dpi=250)
 

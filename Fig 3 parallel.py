@@ -38,6 +38,9 @@ Shadow_price_df = pd.read_csv('Results/Shadow_price.csv')
 race = pd.read_csv('Equity/pollution_race_correlation.csv')
 pollution_burden = pd.read_csv('Equity/pollution_score_damages_corr.csv')
 
+race.columns = ['all_tax' ,'sim ', 'CO2', 'SNP','no_tax']
+pollution_burden.columns = ['all_tax' ,'sim ', 'CO2', 'SNP','no_tax']
+
 #%%
 ########### Converting the Daily data to yearly
 
